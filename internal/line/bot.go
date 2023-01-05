@@ -1,18 +1,14 @@
 package line
 
 import (
+	"github.com/Yoway1994/LineChatGPT3/config"
 	"github.com/line/line-bot-sdk-go/linebot"
-	"github.com/Yoway1994/LineChatGpt3/config"
 )
 
-type line struct {
-	Bot *linebot.Client
-}
-
-func NewBot(cg config.Config) *linebot.Client {
-	bot, err := linebot.New()
+func NewBot(cg *config.Config) *linebot.Client {
+	bot, err := linebot.New(cg.Line.Secret, cg.Line.Token)
 	if err != nil {
-		panic("line bot fail")
+		panic("new linebot fail")
 	}
 	return bot
 }

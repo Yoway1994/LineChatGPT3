@@ -27,9 +27,8 @@ type Gpt3Config struct {
 
 type LineConfig struct {
 	Secret string
-	Token string
+	Token  string
 }
-
 
 func NewConfig() *Config {
 	configPath := "./"
@@ -68,7 +67,7 @@ func NewConfig() *Config {
 		},
 		Line: &LineConfig{
 			Secret: viper.GetString("line.secret"),
-			Token: viper.GetString("line.token"),
+			Token:  viper.GetString("line.token"),
 		},
 	}
 }

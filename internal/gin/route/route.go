@@ -17,14 +17,13 @@ func SetupRouter(config *config.Config) *gin.Engine {
 	r.Static("/api/assets", "./assets")
 	r.POST("/callback", handler.Callback)
 
-	// api := r.Group("/api")
-	// {
-	// 	lineV1 := api.Group("/line")
-	// 	profileV1.Use(middleware.FrontAuthMiddleware)
-	// 	{
-	// 		lineV1.POST("/chat", line.Chat)
-	// 	}
-	// }
+	api := r.Group("/api")
+	{
+		// 	profileV1.Use(middleware.FrontAuthMiddleware)
+		{
+			api.POST("/chat", handler.Chat)
+		}
+	}
 
 	return r
 }

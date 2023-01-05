@@ -4,9 +4,11 @@ go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.8.2
+	github.com/google/wire v0.5.0
 	github.com/jpillora/overseer v1.1.6
 	github.com/line/line-bot-sdk-go v7.8.0+incompatible
 	github.com/natefinch/lumberjack v2.0.0+incompatible
+	github.com/pkg/errors v0.9.1
 	github.com/sashabaranov/go-gpt3 v0.0.0-20230103131550-2c55a49a3495
 	github.com/spf13/viper v1.14.0
 	go.uber.org/zap v1.21.0
