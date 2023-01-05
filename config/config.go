@@ -45,7 +45,7 @@ func NewConfig() *Config {
 	if !matchPathStatus {
 		configPath = "./"
 	}
-	configPath += "config"
+	// configPath += "config"
 	//
 	viper.SetConfigName("config")
 	viper.AddConfigPath(configPath)
