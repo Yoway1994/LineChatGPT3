@@ -22,8 +22,8 @@ func SetupRouter(config *config.Config) *gin.Engine {
 		// 	profileV1.Use(middleware.FrontAuthMiddleware)
 		{
 			api.POST("/chat", handler.Chat)
+			api.GET("/broadcast", handler.Broadcast)
 		}
 	}
-
 	return r
 }

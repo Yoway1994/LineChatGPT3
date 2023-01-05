@@ -34,7 +34,6 @@ func Callback(c *gin.Context) {
 				}
 				if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(resmassage)).Do(); err != nil {
 					zap.S().Warnw("Callback", " bot.ReplyMessage", "err", errors.WithStack(err))
-
 				}
 			}
 		}
