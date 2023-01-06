@@ -42,7 +42,11 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		return nil, err
 	}
 	sText := strings.Split(resp.Choices[0].Text, "\n\n")
-	msg.Text = sText[1]
+	if len(sText) > 1 {
+		msg.Text = sText[1]
+	} else {
+		msg.Text = resp.Choices[0].Text
+	}
 	return msg, nil
 }
 
