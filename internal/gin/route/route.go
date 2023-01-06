@@ -16,14 +16,5 @@ func SetupRouter(config *config.Config) *gin.Engine {
 
 	r.Static("/api/assets", "./assets")
 	r.POST("/callback", handler.Callback)
-
-	api := r.Group("/api")
-	{
-		// 	profileV1.Use(middleware.FrontAuthMiddleware)
-		{
-			api.POST("/chat", handler.Chat)
-			api.GET("/broadcast", handler.Broadcast)
-		}
-	}
 	return r
 }

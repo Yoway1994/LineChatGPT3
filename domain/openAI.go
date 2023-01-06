@@ -1,5 +1,5 @@
 package domain
 
 type OpenAI interface {
-	Chat(text string) (string, error)
+	Chat(msg *MessageEvent) (*MessageEvent, error)
 }

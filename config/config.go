@@ -9,10 +9,11 @@ import (
 )
 
 type Config struct {
-	Env  string
-	Gin  *GinConfig
-	Gpt3 *Gpt3Config
-	Line *LineConfig
+	Env   string
+	Gin   *GinConfig
+	Gpt3  *Gpt3Config
+	Line  *LineConfig
+	Redis *RedisConfig
 }
 
 type GinConfig struct {
@@ -28,6 +29,20 @@ type Gpt3Config struct {
 type LineConfig struct {
 	Secret string
 	Token  string
+	DevS   string
+	DevT   string
+}
+
+type RedisConfig struct {
+	Host           string
+	Port           int
+	Database       int
+	Auth           string
+	Max_idle       int
+	Max_active     int
+	Idle_timeout   int
+	Notify_active  int
+	Polling_active int
 }
 
 func NewConfig() *Config {
@@ -68,6 +83,19 @@ func NewConfig() *Config {
 		Line: &LineConfig{
 			Secret: viper.GetString("line.secret"),
 			Token:  viper.GetString("line.token"),
+			DevS:   viper.GetString("line.devs"),
+			DevT:   viper.GetString("line.devt"),
+		},
+		Redis: &RedisConfig{
+			Host:           viper.GetString("redis.host"),
+			Port:           viper.GetInt("redis.port"),
+			Database:       viper.GetInt("redis.database"),
+			Auth:           viper.GetString("redis.auth"),
+			Max_idle:       viper.GetInt("redis.max_idle"),
+			Max_active:     viper.GetInt("redis.max_active"),
+			Idle_timeout:   viper.GetInt("redis.idle_timeout"),
+			Notify_active:  viper.GetInt("redis.notify_active"),
+			Polling_active: viper.GetInt("redis.polling_active"),
 		},
 	}
 }

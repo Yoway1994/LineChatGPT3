@@ -11,6 +11,8 @@ import (
 	"github.com/Yoway1994/LineChatGPT3/domain"
 	"github.com/Yoway1994/LineChatGPT3/internal/line"
 	"github.com/Yoway1994/LineChatGPT3/internal/openAI"
+	"github.com/Yoway1994/LineChatGPT3/internal/redis"
+
 	"github.com/google/wire"
 	"github.com/line/line-bot-sdk-go/linebot"
 	gogpt "github.com/sashabaranov/go-gpt3"
@@ -28,30 +30,42 @@ func NewConfig() *config.Config {
 	return cg
 }
 
-var bot *linebot.Client
+var botProd *linebot.Client
+var botDev *linebot.Client
 var botOnce sync.Once
 
-func NewLineBot() *linebot.Client {
+func NewLineBot(cfg *config.Config) (*linebot.Client, *linebot.Client) {
 	botOnce.Do(func() {
 		log.Println("init line bot")
-		bot = line.NewBot(cg)
+		botProd, botDev = line.NewBot(cfg)
 		log.Println("init line bot success")
 	})
-	return bot
+	return botProd, botDev
 }
 
 var gpt *gogpt.Client
 var gptOnce sync.Once
 
-func NewChatGpt3(cg *config.Config) *gogpt.Client {
+func NewChatGpt3(cfg *config.Config) *gogpt.Client {
 	gptOnce.Do(func() {
 		log.Println("init gpt3")
-		gpt = openAI.NewClient(cg)
+		gpt = openAI.NewClient(cfg)
 		log.Println("init gpt3")
 	})
 	return gpt
 }
 
+func NewLine() (domain.Line, error) {
+	cfg := NewConfig()
+	botp, botd := NewLineBot(cfg)
+	line := line.NewLine(botp, botd)
+	if line == nil {
+		panic(line)
+	}
+	return line, nil
+}
+
+//
 func NewOpenAI() (domain.OpenAI, error) {
-	panic(wire.Build(openAI.NewOpenAI, NewChatGpt3, NewConfig))
+	panic(wire.Build(openAI.NewOpenAI, redis.NewGoRedis, NewConfig, NewChatGpt3))
 }

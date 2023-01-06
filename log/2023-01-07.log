@@ -1,0 +1,2 @@
+{"level":"INFO","time":"2023-01-07T00:27:52+08:00","caller":"redis/goredis.go:34","msg":"connect redis"}
+{"level":"INFO","time":"2023-01-07T00:27:52+08:00","caller":"redis/goredis.go:45","msg":"connect redis error:dial tcp 0.0.0.0:6379: connect: connection refused"}
