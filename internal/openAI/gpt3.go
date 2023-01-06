@@ -2,6 +2,8 @@ package openAI
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	"github.com/Yoway1994/LineChatGPT3/domain"
 	"github.com/go-redis/redis/v8"
@@ -35,8 +37,12 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		zap.S().Error(err)
 		return nil, err
 	}
-
-	msg.Text = resp.Choices[0].Text
+	if resp.Choices[0].Text == "" {
+		err = errors.New("open AI resp text empty")
+		return nil, err
+	}
+	sText := strings.Split(resp.Choices[0].Text, "\n\n")
+	msg.Text = sText[1]
 	return msg, nil
 }
 
@@ -59,7 +65,7 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 		return nil, err
 	}
 	//
-	msg.Text = textRecord + msg.Text
+	msg.Text = textRecord + " " + msg.Text
 	zap.S().Info("輸入redis訊息:", msg.Text)
 	zap.S().Info("輸入redis key:", msg.User)
 	o.redis.Set(msg.User, msg.Text)
