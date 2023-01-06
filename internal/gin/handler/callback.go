@@ -22,6 +22,7 @@ func Callback(c *gin.Context) {
 		Failed(c, domain.ErrorServer, "")
 		return
 	}
+	zap.S().Info("input message: ", msg)
 	//
 	msgAI, err := openAI.Chat(msg)
 	if err != nil {
@@ -29,9 +30,8 @@ func Callback(c *gin.Context) {
 		Failed(c, domain.ErrorServer, "")
 		return
 	}
-	msg.Text = msgAI.Text
-	//
-	err = line.ReplyMessage(msg)
+	zap.S().Info("output message: ", msgAI)
+	err = line.ReplyMessage(msgAI)
 	if err != nil {
 		zap.S().Error(err)
 		Failed(c, domain.ErrorServer, "")

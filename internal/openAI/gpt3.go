@@ -60,7 +60,8 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 	}
 	//
 	msg.Text = textRecord + msg.Text
-	zap.S().Info(msg.Text)
+	zap.S().Info("輸入redis訊息:", msg.Text)
+	zap.S().Info("輸入redis key:", msg.User)
 	o.redis.Set(msg.User, msg.Text)
 	return msg, nil
 }
