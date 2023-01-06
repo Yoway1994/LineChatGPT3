@@ -29,8 +29,9 @@ func Callback(c *gin.Context) {
 		Failed(c, domain.ErrorServer, "")
 		return
 	}
+	msg.Text = msgAI.Text
 	//
-	err = line.ReplyMessage(msgAI)
+	err = line.ReplyMessage(msg)
 	if err != nil {
 		zap.S().Error(err)
 		Failed(c, domain.ErrorServer, "")

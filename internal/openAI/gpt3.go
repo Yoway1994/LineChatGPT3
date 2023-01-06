@@ -60,6 +60,7 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 	}
 	//
 	msg.Text = textRecord + msg.Text
+	zap.S().Info(msg.Text)
 	o.redis.Set(msg.User, msg.Text)
 	return msg, nil
 }
