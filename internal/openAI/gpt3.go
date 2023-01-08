@@ -3,7 +3,6 @@ package openAI
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/Yoway1994/LineChatGPT3/domain"
 	"github.com/go-redis/redis/v8"
@@ -27,9 +26,10 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 
 	ctx := context.Background()
 	req := gogpt.CompletionRequest{
-		Model:     gogpt.GPT3TextDavinci003,
-		MaxTokens: 1024,
-		Prompt:    msg2AI.Text,
+		Model:       gogpt.GPT3TextDavinci003,
+		MaxTokens:   1024,
+		Temperature: 0.75,
+		Prompt:      msg2AI.Text,
 	}
 
 	resp, err := o.gpt3.CreateCompletion(ctx, req)
@@ -41,12 +41,8 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		err = errors.New("open AI resp text empty")
 		return nil, err
 	}
-	sText := strings.Split(resp.Choices[0].Text, "\n\n")
-	if len(sText) > 1 {
-		msg.Text = sText[1]
-	} else {
-		msg.Text = resp.Choices[0].Text
-	}
+	msg.Text = resp.Choices[0].Text
+
 	return msg, nil
 }
 
