@@ -3,6 +3,8 @@ package openAI
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strconv"
 
 	"github.com/Yoway1994/LineChatGPT3/domain"
 	"github.com/go-redis/redis/v8"
@@ -55,18 +57,51 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 		}
 		return nil, nil
 	}
-	//
-	textRecord, err := o.redis.Get(msg.User)
+	// 取出數字代表最舊的槽位
+	recordNumStr, err := o.redis.Get(msg.User)
 	if err == redis.Nil {
-		textRecord = ""
+		recordNumStr = "0"
 	} else if err != nil {
 		zap.S().Error(err)
 		return nil, err
 	}
+	recordNum, err := strconv.Atoi(recordNumStr)
+	if err != nil {
+		zap.S().Error(err)
+		return nil, err
+	}
+	zap.S().Info("目前最舊的record槽位: ", recordNum)
+	// 設定redis記憶欄位只有4筆
+	// pointer會從最舊的記憶欄位, 指向最新的 (0 , 1, 2, 3)
+	count := 0
+	textRecord := ""
+	for count < 4 {
+		pointer := (recordNum + count) % 4
+		count++
+		redisKey := fmt.Sprintf(msg.User, pointer)
+		record, err := o.redis.Get(redisKey)
+		zap.S().Info("目前槽位: ", pointer)
+		if err == redis.Nil {
+			zap.S().Info("該槽位無資訊")
+			// 找不到跳下一個槽位
+			continue
+		} else if err != nil {
+			zap.S().Error(err)
+			return nil, err
+		}
+		textRecord += (record + " ")
+		zap.S().Info("取得該槽位record", record)
+	}
+	// 更新記憶槽位資訊
+	// 把最新的資訊覆蓋在舊的資訊的槽位
+	newMsgKey := fmt.Sprintf(msg.User, recordNumStr)
+	o.redis.Set(newMsgKey, msg.Text)
+	// recordNumStr指向最舊的槽位
+	recordNumStr = strconv.Itoa(recordNum + 1)
+	o.redis.Set(msg.User, recordNumStr)
 	//
-	msg.Text = textRecord + " " + msg.Text
-	zap.S().Info("輸入redis訊息:", msg.Text)
-	zap.S().Info("輸入redis key:", msg.User)
-	o.redis.Set(msg.User, msg.Text)
+
+	msg.Text = textRecord + msg.Text
+	zap.S().Info("最終訊息", msg.Text)
 	return msg, nil
 }
