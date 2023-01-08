@@ -61,7 +61,7 @@ func NewRedis(config *config.Config) domain.GoRedis {
 }
 
 func (r *GoRedis) Set(key string, value interface{}) error {
-	return r.conn.Set(context.Background(), key, value, 0).Err()
+	return r.conn.Set(context.Background(), key, value, 600*time.Second).Err()
 }
 
 func (r *GoRedis) Del(key string) error {

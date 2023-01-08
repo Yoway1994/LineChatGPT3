@@ -23,7 +23,6 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		msg.Text = "Ending Chat, 對話結束."
 		return msg, nil
 	}
-
 	ctx := context.Background()
 	req := gogpt.CompletionRequest{
 		Model:       gogpt.GPT3TextDavinci003,
