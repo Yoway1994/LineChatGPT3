@@ -112,7 +112,7 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 		return nil, err
 	}
 	// recordNumStr指向最舊的槽位
-	recordNumStr = strconv.Itoa(recordNum + 1)
+	recordNumStr = strconv.Itoa((recordNum + 1) % 4)
 	err = o.redis.Set(msg.User, recordNumStr)
 	if err != nil {
 		zap.S().Error(err)
