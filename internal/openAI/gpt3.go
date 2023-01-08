@@ -50,10 +50,15 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 	if msg.Text == "/end" {
 		count := 0
+		err := o.redis.Del(msg.User)
+		if err != nil {
+			zap.S().Error(err)
+			return nil, err
+		}
 		for count < 4 {
 			count++
-			key := fmt.Sprintf(msg.User, count)
-			err := o.redis.Del(key)
+			key := fmt.Sprintf("%s%d", msg.User, count)
+			err = o.redis.Del(key)
 			if err != nil {
 				zap.S().Error(err)
 				return nil, err
@@ -82,7 +87,7 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 	for count < 4 {
 		pointer := (recordNum + count) % 4
 		count++
-		redisKey := fmt.Sprintf(msg.User, pointer)
+		redisKey := fmt.Sprintf("%s%d", msg.User, pointer)
 		record, err := o.redis.Get(redisKey)
 		zap.S().Info("目前槽位: ", pointer)
 		zap.S().Info("目前槽位key: ", redisKey)
@@ -99,7 +104,7 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 	}
 	// 更新記憶槽位資訊
 	// 把最新的資訊覆蓋在舊的資訊的槽位
-	newMsgKey := fmt.Sprintf(msg.User, recordNumStr)
+	newMsgKey := fmt.Sprintf("%s%d", msg.User, recordNum)
 	err = o.redis.Set(newMsgKey, msg.Text)
 	zap.S().Info("最新槽位key: ", newMsgKey)
 	if err != nil {
