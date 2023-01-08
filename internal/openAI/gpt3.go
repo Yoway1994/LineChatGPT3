@@ -79,7 +79,6 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 		zap.S().Error(err)
 		return nil, err
 	}
-	zap.S().Info("目前最舊的record槽位: ", recordNum)
 	// 設定redis記憶欄位只有4筆
 	// pointer會從最舊的記憶欄位, 指向最新的 (0 , 1, 2, 3)
 	count := 0
@@ -89,10 +88,7 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 		count++
 		redisKey := fmt.Sprintf("%s%d", msg.User, pointer)
 		record, err := o.redis.Get(redisKey)
-		zap.S().Info("目前槽位: ", pointer)
-		zap.S().Info("目前槽位key: ", redisKey)
 		if err == redis.Nil {
-			zap.S().Info("該槽位無資訊")
 			// 找不到跳下一個槽位
 			continue
 		} else if err != nil {
@@ -100,13 +96,11 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 			return nil, err
 		}
 		textRecord += (record + " ")
-		zap.S().Info("取得該槽位record: ", record)
 	}
 	// 更新記憶槽位資訊
 	// 把最新的資訊覆蓋在舊的資訊的槽位
 	newMsgKey := fmt.Sprintf("%s%d", msg.User, recordNum)
 	err = o.redis.Set(newMsgKey, msg.Text)
-	zap.S().Info("最新槽位key: ", newMsgKey)
 	if err != nil {
 		zap.S().Error(err)
 		return nil, err
@@ -120,6 +114,5 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 	}
 	//
 	msg.Text = textRecord + msg.Text
-	zap.S().Info("最終訊息: ", msg.Text)
 	return msg, nil
 }
