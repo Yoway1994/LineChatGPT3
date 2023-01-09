@@ -30,6 +30,7 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		return msg, nil
 	}
 	ctx := context.Background()
+	// AI原始輸入
 	zap.S().Info("AI Prompt: ", msg2AI.Text)
 	req := gogpt.CompletionRequest{
 		Model:       gogpt.GPT3TextDavinci003,
@@ -150,7 +151,7 @@ func (o openAI) RecordAiResp(msg *domain.MessageEvent) error {
 	redisKey := fmt.Sprintf("%s%d", msg.User, pointer)
 	record, err := o.redis.Get(redisKey)
 	// 存入AI的回覆
-	respRecord := record + aiPrefix + msg.Text
+	respRecord := record + " " + aiPrefix + msg.Text
 	err = o.redis.Set(redisKey, respRecord)
 	if err != nil {
 		zap.S().Error(err)
