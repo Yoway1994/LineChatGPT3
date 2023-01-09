@@ -34,7 +34,7 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 	req := gogpt.CompletionRequest{
 		Model:       gogpt.GPT3TextDavinci003,
 		MaxTokens:   1024,
-		Temperature: 0.75,
+		Temperature: 0.87,
 		Prompt:      msg2AI.Text,
 	}
 
@@ -60,7 +60,6 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		return nil, err
 	}
 	//
-
 	return msg, nil
 }
 
@@ -178,7 +177,7 @@ func (o openAI) BeautifyAiOutput(msg *domain.MessageEvent) error {
 		return err
 	}
 	// 檢查雙空格
-	pattern3 := "\n\n" + "(.+)"
+	pattern3 := "(?s)\n\n(.+)"
 	r3, err := regexp.Compile(pattern3)
 	if err != nil {
 		zap.S().Error(err)
