@@ -2,9 +2,9 @@ package openAI
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/Yoway1994/LineChatGPT3/domain"
 	"github.com/go-redis/redis/v8"
@@ -13,7 +13,10 @@ import (
 	"go.uber.org/zap"
 )
 
-// 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
+var slot int = 4
+var userPrefix string = "user:"
+var aiPrefix string = "response:"
+
 func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 
 	msg2AI, err := o.GetTextRecord(msg)
@@ -38,12 +41,16 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		zap.S().Error(err)
 		return nil, err
 	}
-	if resp.Choices[0].Text == "" {
-		err = errors.New("open AI resp text empty")
+	msg.Text = resp.Choices[0].Text
+	err = o.RecordAiResp(msg)
+	if err != nil {
+		zap.S().Error(err)
 		return nil, err
 	}
-	msg.Text = resp.Choices[0].Text
-
+	msg.Text = strings.TrimLeft(msg.Text, aiPrefix)
+	if msg.Text == "" {
+		msg.Text = ":)"
+	}
 	return msg, nil
 }
 
@@ -55,7 +62,7 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 			zap.S().Error(err)
 			return nil, err
 		}
-		for count < 4 {
+		for count < slot {
 			count++
 			key := fmt.Sprintf("%s%d", msg.User, count)
 			err = o.redis.Del(key)
@@ -79,12 +86,12 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 		zap.S().Error(err)
 		return nil, err
 	}
-	// 設定redis記憶欄位只有4筆
-	// pointer會從最舊的記憶欄位, 指向最新的 (0 , 1, 2, 3)
+	// 設定redis記憶欄位slot筆數
+	// pointer會從最舊的記憶欄位, 指向最新的 (0, 1, 2, 3)
 	count := 0
 	textRecord := ""
-	for count < 4 {
-		pointer := (recordNum + count) % 4
+	for count < slot {
+		pointer := (recordNum + count) % slot
 		count++
 		redisKey := fmt.Sprintf("%s%d", msg.User, pointer)
 		record, err := o.redis.Get(redisKey)
@@ -106,13 +113,40 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 		return nil, err
 	}
 	// recordNumStr指向最舊的槽位
-	recordNumStr = strconv.Itoa((recordNum + 1) % 4)
+	recordNumStr = strconv.Itoa((recordNum + 1) % slot)
 	err = o.redis.Set(msg.User, recordNumStr)
 	if err != nil {
 		zap.S().Error(err)
 		return nil, err
 	}
 	//
-	msg.Text = textRecord + msg.Text
+	msg.Text = textRecord + userPrefix + msg.Text
 	return msg, nil
+}
+
+func (o openAI) RecordAiResp(msg *domain.MessageEvent) error {
+	recordNumStr, err := o.redis.Get(msg.User)
+	if err == redis.Nil {
+		recordNumStr = "0"
+	} else if err != nil {
+		zap.S().Error(err)
+		return err
+	}
+	recordNum, err := strconv.Atoi(recordNumStr)
+	if err != nil {
+		zap.S().Error(err)
+		return err
+	}
+	// 取的剛存入的最新訊息
+	pointer := (recordNum + 3) % slot
+	redisKey := fmt.Sprintf("%s%d", msg.User, pointer)
+	record, err := o.redis.Get(redisKey)
+	// 存入AI的回覆
+	respRecord := record + aiPrefix + msg.Text
+	err = o.redis.Set(redisKey, respRecord)
+	if err != nil {
+		zap.S().Error(err)
+		return err
+	}
+	return nil
 }
