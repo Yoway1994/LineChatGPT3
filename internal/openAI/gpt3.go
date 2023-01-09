@@ -66,6 +66,8 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 	if msg.Text == "/end" {
 		count := 0
+		r, _ := o.redis.Get(msg.User)
+		zap.S().Info(msg.User, "_key_value_", r)
 		err := o.redis.Del(msg.User)
 		if err != nil {
 			zap.S().Error(err)
@@ -74,6 +76,8 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 		for count < slot {
 			count++
 			key := fmt.Sprintf("%s%d", msg.User, count)
+			r, _ := o.redis.Get(key)
+			zap.S().Info(key, "_key_value_", r)
 			err = o.redis.Del(key)
 			if err != nil {
 				zap.S().Error(err)
