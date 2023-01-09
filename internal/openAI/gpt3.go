@@ -3,6 +3,7 @@ package openAI
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -41,16 +42,21 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		zap.S().Error(err)
 		return nil, err
 	}
+	// 存入AI response到redis
 	msg.Text = resp.Choices[0].Text
 	err = o.RecordAiResp(msg)
 	if err != nil {
 		zap.S().Error(err)
 		return nil, err
 	}
-	msg.Text = strings.TrimLeft(msg.Text, aiPrefix)
-	if msg.Text == "" {
-		msg.Text = ":)"
+	// 美化AI字串輸出
+	err = o.BeautifyAiOutput(msg)
+	if err != nil {
+		zap.S().Error(err)
+		return nil, err
 	}
+	//
+
 	return msg, nil
 }
 
@@ -147,6 +153,45 @@ func (o openAI) RecordAiResp(msg *domain.MessageEvent) error {
 	if err != nil {
 		zap.S().Error(err)
 		return err
+	}
+	return nil
+}
+
+func (o openAI) BeautifyAiOutput(msg *domain.MessageEvent) error {
+	originText := msg.Text
+	// 先檢查prefix
+	pattern1 := aiPrefix + "(.+)"
+	r1, err := regexp.Compile(pattern1)
+	if err != nil {
+		zap.S().Error(err)
+		return err
+	}
+	// 檢查雙空格
+	pattern2 := "\n\n" + "(.+)"
+	r2, err := regexp.Compile(pattern2)
+	if err != nil {
+		zap.S().Error(err)
+		return err
+	}
+	//
+	var beautifiedText string
+	if r1.MatchString(originText) {
+		// 發現prefix就移除
+		rawText := r1.FindString(originText)
+		beautifiedText = strings.TrimPrefix(rawText, aiPrefix)
+	} else if r2.MatchString(originText) {
+		// 沒發現prefix, 但發現雙空格
+		rawText := r2.FindString(originText)
+		beautifiedText = strings.TrimPrefix(rawText, "\n\n")
+	} else {
+		// 都沒發現, 不做美化
+		beautifiedText = msg.Text
+	}
+	// 輸出美化
+	if msg.Text == "" {
+		msg.Text = ":)"
+	} else {
+		msg.Text = beautifiedText
 	}
 	return nil
 }
