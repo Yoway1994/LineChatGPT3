@@ -30,6 +30,7 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		return msg, nil
 	}
 	ctx := context.Background()
+	zap.S().Info("AI Prompt: ", msg2AI.Text)
 	req := gogpt.CompletionRequest{
 		Model:       gogpt.GPT3TextDavinci003,
 		MaxTokens:   1024,
@@ -42,8 +43,11 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		zap.S().Error(err)
 		return nil, err
 	}
+
 	// 存入AI response到redis
 	msg.Text = resp.Choices[0].Text
+	zap.S().Info("AI Completion: ", msg.Text)
+
 	err = o.RecordAiResp(msg)
 	if err != nil {
 		zap.S().Error(err)
@@ -166,22 +170,32 @@ func (o openAI) BeautifyAiOutput(msg *domain.MessageEvent) error {
 		zap.S().Error(err)
 		return err
 	}
-	// 檢查雙空格
-	pattern2 := "\n\n" + "(.+)"
+	// 有時候會有大寫Response:
+	pattern2 := "Response:(.+)"
 	r2, err := regexp.Compile(pattern2)
 	if err != nil {
 		zap.S().Error(err)
 		return err
 	}
-	//
+	// 檢查雙空格
+	pattern3 := "\n\n" + "(.+)"
+	r3, err := regexp.Compile(pattern3)
+	if err != nil {
+		zap.S().Error(err)
+		return err
+	}
+
 	var beautifiedText string
 	if r1.MatchString(originText) {
 		// 發現prefix就移除
 		rawText := r1.FindString(originText)
 		beautifiedText = strings.TrimPrefix(rawText, aiPrefix)
 	} else if r2.MatchString(originText) {
-		// 沒發現prefix, 但發現雙空格
 		rawText := r2.FindString(originText)
+		beautifiedText = strings.TrimPrefix(rawText, "Response:")
+	} else if r3.MatchString(originText) {
+		// 沒發現prefix, 但發現雙空格
+		rawText := r3.FindString(originText)
 		beautifiedText = strings.TrimPrefix(rawText, "\n\n")
 	} else {
 		// 都沒發現, 不做美化
