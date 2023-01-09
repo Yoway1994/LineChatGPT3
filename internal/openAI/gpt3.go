@@ -164,14 +164,14 @@ func (o openAI) RecordAiResp(msg *domain.MessageEvent) error {
 func (o openAI) BeautifyAiOutput(msg *domain.MessageEvent) error {
 	originText := msg.Text
 	// 先檢查prefix
-	pattern1 := aiPrefix + "(.+)"
+	pattern1 := "(?s)" + aiPrefix + "(.+)"
 	r1, err := regexp.Compile(pattern1)
 	if err != nil {
 		zap.S().Error(err)
 		return err
 	}
 	// 有時候會有大寫Response:
-	pattern2 := "Response:(.+)"
+	pattern2 := "(?s)Response:(.+)"
 	r2, err := regexp.Compile(pattern2)
 	if err != nil {
 		zap.S().Error(err)
@@ -201,6 +201,8 @@ func (o openAI) BeautifyAiOutput(msg *domain.MessageEvent) error {
 		// 都沒發現, 不做美化
 		beautifiedText = msg.Text
 	}
+	// 再去一次雙空格
+	beautifiedText = strings.TrimPrefix(beautifiedText, "\n\n")
 	// 輸出美化
 	if msg.Text == "" {
 		msg.Text = ":)"
