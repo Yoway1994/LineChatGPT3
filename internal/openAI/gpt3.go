@@ -43,23 +43,22 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		zap.S().Error(err)
 		return nil, err
 	}
-
-	// 存入AI response到redis
+	// AI原始輸出
 	msg.Text = resp.Choices[0].Text
 	zap.S().Info("AI Completion: ", msg.Text)
 
-	err = o.RecordAiResp(msg)
-	if err != nil {
-		zap.S().Error(err)
-		return nil, err
-	}
 	// 美化AI字串輸出
 	err = o.BeautifyAiOutput(msg)
 	if err != nil {
 		zap.S().Error(err)
 		return nil, err
 	}
-	//
+	// 存入AI response到redis
+	err = o.RecordAiResp(msg)
+	if err != nil {
+		zap.S().Error(err)
+		return nil, err
+	}
 	return msg, nil
 }
 
