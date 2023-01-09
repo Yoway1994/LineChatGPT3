@@ -116,7 +116,7 @@ func (o openAI) GetTextRecord(msg *domain.MessageEvent) (*domain.MessageEvent, e
 	// 更新記憶槽位資訊
 	// 把最新的資訊覆蓋在舊的資訊的槽位
 	newMsgKey := fmt.Sprintf("%s%d", msg.User, recordNum)
-	err = o.redis.Set(newMsgKey, msg.Text)
+	err = o.redis.Set(newMsgKey, userPrefix+msg.Text)
 	if err != nil {
 		zap.S().Error(err)
 		return nil, err
