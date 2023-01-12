@@ -1,3 +1,4 @@
+// go:build wireinject
 //go:build wireinject
 // +build wireinject
 
@@ -49,10 +50,30 @@ var gptOnce sync.Once
 func NewChatGpt3(cfg *config.Config) *gogpt.Client {
 	gptOnce.Do(func() {
 		log.Println("init gpt3")
-		gpt = openAI.NewClient(cfg)
+		apikey := cfg.Gpt3.ApiKey
+		gpt = openAI.NewClient(apikey)
 		log.Println("init gpt3")
 	})
 	return gpt
+}
+
+var gpt3 *[]*gogpt.Client
+var gpt3Once sync.Once
+
+func NewChatGpt3List(cfg *config.Config) *[]*gogpt.Client {
+	gptOnce.Do(func() {
+		log.Println("init gpt3 list")
+		for _, key := range cfg.Gpt3.ApiKeys {
+			gpti := openAI.NewClient(key)
+			*gpt3 = append(*gpt3, gpti)
+		}
+		log.Println("init gpt3 list")
+	})
+	return gpt3
+}
+
+func NewChatGpt3Length(gpt3 *[]*gogpt.Client) int {
+	return len(*gpt3)
 }
 
 func NewLine() (domain.Line, error) {
@@ -67,5 +88,5 @@ func NewLine() (domain.Line, error) {
 
 //
 func NewOpenAI() (domain.OpenAI, error) {
-	panic(wire.Build(openAI.NewOpenAI, redis.NewGoRedis, NewConfig, NewChatGpt3))
+	panic(wire.Build(openAI.NewOpenAI, redis.NewGoRedis, NewConfig, NewChatGpt3, NewChatGpt3List, NewChatGpt3Length))
 }

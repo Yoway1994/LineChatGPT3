@@ -23,7 +23,8 @@ type GinConfig struct {
 }
 
 type Gpt3Config struct {
-	ApiKey string
+	ApiKey  string
+	ApiKeys []string
 }
 
 type LineConfig struct {
@@ -78,7 +79,8 @@ func NewConfig() *Config {
 			Mode: viper.GetString("server.mode"),
 		},
 		Gpt3: &Gpt3Config{
-			ApiKey: viper.GetString("gpt3.apikey"),
+			ApiKey:  viper.GetString("gpt3.apikey"),
+			ApiKeys: viper.GetStringSlice("gpt3.apikeys"),
 		},
 		Line: &LineConfig{
 			Secret: viper.GetString("line.secret"),

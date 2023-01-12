@@ -20,11 +20,14 @@ import (
 
 // Injectors from wire.go:
 
+//
 func NewOpenAI() (domain.OpenAI, error) {
 	config := NewConfig()
 	client := NewChatGpt3(config)
+	v := NewChatGpt3List(config)
 	goRedis := redis.NewGoRedis(config)
-	domainOpenAI := openAI.NewOpenAI(client, goRedis)
+	int2 := NewChatGpt3Length(v)
+	domainOpenAI := openAI.NewOpenAI(client, v, goRedis, int2)
 	return domainOpenAI, nil
 }
 
@@ -65,10 +68,31 @@ var gptOnce sync.Once
 func NewChatGpt3(cfg *config.Config) *gogpt.Client {
 	gptOnce.Do(func() {
 		log.Println("init gpt3")
-		gpt = openAI.NewClient(cfg)
+		apikey := cfg.Gpt3.ApiKey
+		gpt = openAI.NewClient(apikey)
 		log.Println("init gpt3")
 	})
 	return gpt
+}
+
+var gpt3 *[]*gogpt.Client
+
+var gpt3Once sync.Once
+
+func NewChatGpt3List(cfg *config.Config) *[]*gogpt.Client {
+	gptOnce.Do(func() {
+		log.Println("init gpt3 list")
+		for _, key := range cfg.Gpt3.ApiKeys {
+			gpti := openAI.NewClient(key)
+			*gpt3 = append(*gpt3, gpti)
+		}
+		log.Println("init gpt3 list")
+	})
+	return gpt3
+}
+
+func NewChatGpt3Length(gpt3_2 *[]*gogpt.Client) int {
+	return len(*gpt3_2)
 }
 
 func NewLine() (domain.Line, error) {

@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/Yoway1994/LineChatGPT3/domain"
+	"github.com/Yoway1994/LineChatGPT3/internal/provider"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func Success(c *gin.Context, data interface{}) {
@@ -17,11 +19,15 @@ func Success(c *gin.Context, data interface{}) {
 }
 
 func Failed(c *gin.Context, err domain.ErrorFormat, customMessage string) {
+	line, _ := provider.NewLine()
 	message := err.Message
 	if customMessage != "" {
 		message = customMessage
 	}
-
+	errLine := line.SendDevMessage(message)
+	if errLine != nil {
+		zap.S().Error(errLine)
+	}
 	switch err {
 	case domain.ErrorServer:
 		c.JSON(http.StatusInternalServerError, gin.H{

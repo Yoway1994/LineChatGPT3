@@ -42,3 +42,15 @@ func (l line) ReplyMessage(reply *domain.MessageEvent) error {
 	}
 	return nil
 }
+
+func (l line) SendDevMessage(msg string) error {
+	_, err := l.BotDev.PushMessage(
+		"Ufdfa8423b5962e5d05b5e89b61dc43d4",
+		linebot.NewTextMessage(msg),
+	).Do()
+	if err != nil {
+		zap.S().Error(err)
+		return err
+	}
+	return nil
+}
