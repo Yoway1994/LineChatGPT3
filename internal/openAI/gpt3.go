@@ -37,7 +37,7 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 		resp, err = o.gpt3.CreateCompletion(ctx, req)
 		if err == nil {
 			break
-		} else if err != nil && count == o.index {
+		} else if err != nil && count >= o.index {
 			zap.S().Error(err)
 			return nil, err
 		} else {
