@@ -70,7 +70,7 @@ func NewChatGpt3(cfg *config.Config) *gogpt.Client {
 		log.Println("init gpt3")
 		apikey := cfg.Gpt3.ApiKey
 		gpt = openAI.NewClient(apikey)
-		log.Println("init gpt3")
+		log.Println("init gpt3 success")
 	})
 	return gpt
 }
@@ -80,13 +80,15 @@ var gpt3 *[]*gogpt.Client
 var gpt3Once sync.Once
 
 func NewChatGpt3List(cfg *config.Config) *[]*gogpt.Client {
-	gptOnce.Do(func() {
+	gpt3Once.Do(func() {
+		gpt3New := make([]*gogpt.Client, 0)
 		log.Println("init gpt3 list")
 		for _, key := range cfg.Gpt3.ApiKeys {
 			gpti := openAI.NewClient(key)
-			*gpt3 = append(*gpt3, gpti)
+			gpt3New = append(gpt3New, gpti)
 		}
 		log.Println("init gpt3 list")
+		gpt3 = &gpt3New
 	})
 	return gpt3
 }
