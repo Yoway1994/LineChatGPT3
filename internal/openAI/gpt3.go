@@ -34,16 +34,16 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 	var count int = 0
 	var resp gogpt.CompletionResponse
 	for {
+		// 打之前先切下一個client index
+		o.NextClient(count)
 		resp, err = o.gpt3.CreateCompletion(ctx, req)
 		if err == nil {
 			break
-		} else if err != nil && count >= o.index {
-			zap.S().Error(err)
+		}
+		zap.S().Error(err)
+		count++
+		if count >= o.num {
 			return nil, err
-		} else {
-			count++
-			zap.S().Error(err)
-			o.NextClient(count)
 		}
 	}
 	// AI原始輸出

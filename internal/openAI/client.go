@@ -11,15 +11,15 @@ type openAI struct {
 	gpt3        *gogpt.Client
 	gpt3Clients *[]*gogpt.Client
 	redis       *redis.GoRedis
-	index       int
+	num         int
 }
 
-func NewOpenAI(c *gogpt.Client, g *[]*gogpt.Client, r *redis.GoRedis, i int) domain.OpenAI {
+func NewOpenAI(c *gogpt.Client, g *[]*gogpt.Client, r *redis.GoRedis, n int) domain.OpenAI {
 	return openAI{
 		gpt3:        c,
 		gpt3Clients: g,
 		redis:       r,
-		index:       i,
+		num:         n,
 	}
 }
 
