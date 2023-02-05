@@ -12,17 +12,18 @@ import (
 
 func Callback(c *gin.Context) {
 	line, _ := provider.NewLine()
-	openAI, err := provider.NewOpenAI()
-	if err != nil {
-		zap.S().Error(err)
-		Failed(c, domain.ErrorServer, fmt.Sprintf("provider.NewOpenAI: %s", err), nil)
-		return
-	}
 	//
 	msg, err := line.GetMessage(c.Request)
 	if err != nil {
 		zap.S().Error(err)
 		Failed(c, domain.ErrorServer, fmt.Sprintf("line.GetMessage: %s", err), msg)
+		return
+	}
+	//
+	openAI, err := provider.NewOpenAI()
+	if err != nil {
+		zap.S().Error(err)
+		Failed(c, domain.ErrorServer, fmt.Sprintf("provider.NewOpenAI: %s", err), msg)
 		return
 	}
 	//
