@@ -30,10 +30,13 @@ func Failed(c *gin.Context, err domain.ErrorFormat, customMessage string, msg *d
 	if errLine != nil {
 		zap.S().Error(errLine)
 	}
-	if msg != nil && msg.Token != "" {
-		msg.Text = errorText
-		line.ReplyMessage(msg)
+
+	msg.Text = errorText
+	errLine = line.ReplyMessage(msg)
+	if errLine != nil {
+		zap.S().Error(errLine)
 	}
+
 	switch err {
 	case domain.ErrorServer:
 		c.JSON(http.StatusInternalServerError, gin.H{
