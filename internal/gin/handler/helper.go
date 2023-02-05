@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var errorText string = "伺服器似乎遇到一點問題...Seems like we encountered with some issue here."
+
 func Success(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
@@ -18,7 +20,7 @@ func Success(c *gin.Context, data interface{}) {
 	})
 }
 
-func Failed(c *gin.Context, err domain.ErrorFormat, customMessage string) {
+func Failed(c *gin.Context, err domain.ErrorFormat, customMessage string, msg *domain.MessageEvent) {
 	line, _ := provider.NewLine()
 	message := err.Message
 	if customMessage != "" {
@@ -27,6 +29,10 @@ func Failed(c *gin.Context, err domain.ErrorFormat, customMessage string) {
 	errLine := line.SendDevMessage(message)
 	if errLine != nil {
 		zap.S().Error(errLine)
+	}
+	if msg != nil && msg.Token != "" {
+		msg.Text = errorText
+		line.ReplyMessage(msg)
 	}
 	switch err {
 	case domain.ErrorServer:
