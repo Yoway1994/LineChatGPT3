@@ -34,9 +34,10 @@ func NewGoRedis(config *config.Config) *GoRedis {
 			zap.S().Info("connect redis")
 			rdb = redis.NewClient(&redis.Options{
 				Addr:        fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
-				DB:          config.Redis.Database,
+				// DB:          config.Redis.Database,
+				Password:    config.Redis.Auth,
 				PoolSize:    config.Redis.Max_active,
-				IdleTimeout: 1 * time.Minute,
+				IdleTimeout: 30 * time.Second,
 			})
 			_, err := rdb.Ping(context.Background()).Result()
 			if err != nil {
