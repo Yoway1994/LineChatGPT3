@@ -15,6 +15,7 @@ func SetupRouter(config *config.Config) *gin.Engine {
 	// r.Use(middleware.CORSMiddleware())
 
 	r.Static("/api/assets", "./assets")
+	r.GET("/ping", handler.Ping)
 	r.POST("/callback", handler.Callback)
 	return r
 }
