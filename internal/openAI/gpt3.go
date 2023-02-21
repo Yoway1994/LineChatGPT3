@@ -28,7 +28,7 @@ func (o openAI) Chat(msg *domain.MessageEvent) (*domain.MessageEvent, error) {
 	req := gogpt.CompletionRequest{
 		Model:       gogpt.GPT3TextDavinci003,
 		MaxTokens:   1024,
-		Temperature: 0.87,
+		Temperature: 0.9,
 		Prompt:      msg2AI.Text,
 	}
 	var count int = 0
